@@ -1,5 +1,5 @@
 /*jshint eqnull:true, expr:true*/
-var array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] // For testing, remember to remove.
+
 var _ = { };
 
 (function() {
@@ -142,20 +142,76 @@ var _ = { };
   // iterator(previousValue, item) for each item. previousValue should be
   // the return value of the previous iterator call.
   _.reduce = function(collection, iterator, initialValue) {
+    var initialValue = initialValue ? initialValue : 0;
+    for (var i = 0; i < collection.length; i++) {
+      initialValue = iterator(initialValue, collection[i])
+    }
+    return initialValue;
   };
 
   // Determine if the array or object contains a given value (using `===`).
   _.contains = function(collection, target) {
+    var contains = false;
+    if (Array.isArray(collection)) {
+      for (var i = 0; i < collection.length; i++) {
+        if (collection[i] === target) {
+          contains = true;
+        }
+      }
+    } else {
+      for (var prop in collection) {
+        if (collection[prop] === target) {
+          contains = true;
+        }
+      }
+    }
+    return contains;
   };
 
 
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
+    if (!(iterator)) {
+      return true;
+    }
+    if (Array.isArray(collection)) {
+      for (var i = 0; i < collection.length; i++) {
+        if (!(iterator(collection[i]))) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      for (var prop in collection) {
+        if (!(iterator(collection[prop]))) {
+          return false;
+        }
+      }
+      return true;
+    }
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
+    if (!(iterator)) {
+      iterator = Boolean;
+    }
+    var some = false;
+    if (Array.isArray(collection)) {
+      for (var i = 0; i < collection.length; i++) {
+        if (iterator(collection[i])) {
+          some = true;
+        }
+      }
+    } else {
+      for (var prop in collection) {
+        if (iterator(collection[prop])) {
+          some = true;
+        }
+      }
+    }
+    return some;
   };
 
 
@@ -169,6 +225,10 @@ var _ = { };
   // Extend a given object with all the properties of the passed in
   // object(s).
   _.extend = function(obj) {
+    for (var prop in obj) {
+      obj[prop] = obj[prop];
+    }
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
