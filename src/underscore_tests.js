@@ -225,15 +225,30 @@ var _ = { };
   // Extend a given object with all the properties of the passed in
   // object(s).
   _.extend = function(obj) {
-    for (var prop in obj) {
-      obj[prop] = obj[prop];
-    }
+    // Fetch the passed in objects, however many, from the arguments object.
+    var objectList = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+
+    objectList.forEach(function(obj2) {
+      for (var prop in obj2) {
+        obj[prop] = obj2[prop];
+      }
+    })
     return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    var objectlist = (arguments.length === 1 ? [arguments[0]] :
+    Array.apply(null, arguments));
+
+    objectList.forEach(function(obj2) {
+      for (var prop in obj2) {
+        if (!(prop in obj)) {
+          obj[prop] = obj2[prop];
+        }
+      }
+    })
   };
 
 
