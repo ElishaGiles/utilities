@@ -93,16 +93,12 @@ var _ = { };
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
-    var ans = [];
-    for (var i = 0, copy = []; i < array.length; i++) {
-      if (copy.indexOf(array[i]) === -1) {
-        ans.push(array[i])
-        copy.push(array[i]);
-      } else {
-        copy.push(array[i]);
+    for (var i = 0; i < array.length; i++) {
+      for (var j = i+1; j < array.length; j++) {
+        if (array[i] === array[j]) array.splice(i, 1);
       }
     }
-    return ans;
+    return array.sort();
   };
 
 
