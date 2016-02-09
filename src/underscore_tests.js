@@ -1,5 +1,7 @@
 /*jshint eqnull:true, expr:true*/
-
+var onceTester1 = function() { return 4 };
+var onceTester2 = function() { return 5 };
+var flattenTest = [1, 2, [3, 4], 5]
 var _ = { };
 
 (function() {
@@ -256,6 +258,13 @@ var _ = { };
   // Return a function that can be called at most one time. Subsequent calls
   // should return the previously returned value.
   _.once = function(func) {
+    if (this.invoked) {
+      return this.value
+    } else {
+      this.invoked = true;
+      this.value = func();
+      return func();
+    }
   };
 
   // Memoize an expensive function by storing its results. You may assume
@@ -265,6 +274,17 @@ var _ = { };
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    if (!this.invoked) {
+      this.invoked = true;
+      this.results = {};
+    }
+    var o = this.results;
+    if (func in o) {
+      return o[func];
+    } else {
+      o[func] = func();
+      return func();
+    }
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -300,6 +320,15 @@ var _ = { };
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   _.flatten = function(nestedArray, result) {
+    var ans = [], l = nestedArray.length;
+    for (var i = 0; i < l; i++) {
+      if (Array.isArray(nestedArray[i])) {
+         ans.push(_.flatten(nestedArray[i]));
+      } else {
+        ans.push(nestedArray[i]);
+      }
+    }
+    return ans;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
