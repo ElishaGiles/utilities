@@ -293,8 +293,9 @@ var _ = { };
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
     var argsList = Array.apply(null, arguments);
+    argsList.splice(0, 2);
     return setTimeout(function() {
-      return func(argsList[2], argsList[3])
+      return func.apply(null, argsList)
     }, wait);
   };
 
@@ -317,7 +318,7 @@ var _ = { };
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
     if (typeof(iterator) === 'string') {
-
+      // If iterator is a string, convert it into a function to return the right information.
       var arg = iterator;
       iterator = function(obj) {
         return obj[arg];
@@ -332,6 +333,7 @@ var _ = { };
       for (var i = 0; i < collection.length-1; i++) {
 
         if (iterator(collection[i]) === undefined) {
+          // I don't know what else to do with undefined values, so put them in an array and we will boot them to the end of the array at the end.
           nullValues.push(collection[i]);
           collection.splice(i, 1)
         }
@@ -345,10 +347,12 @@ var _ = { };
           collection[i] = store;
         }
       }
+      // Keep swapping until everything is in order.
       if(swap) { return sorter() }
     }
 
     sorter();
+    // Here we push those null values back to the end of the array.
     nullValues.forEach(function(x) {
       collection.push(x);
     })
