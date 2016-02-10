@@ -1,7 +1,5 @@
 /*jshint eqnull:true, expr:true*/
-var onceTester1 = function() { return 4 };
-var onceTester2 = function() { return 5 };
-var flattenTest = [1, 2, [3, 4], 5]
+
 var _ = { };
 
 (function() {
@@ -237,16 +235,17 @@ var _ = { };
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
-    var objectlist = (arguments.length === 1 ? [arguments[0]] :
-    Array.apply(null, arguments));
+    // Fetch the passed in objects, however many, from the arguments object.
+    var objectList = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
 
     objectList.forEach(function(obj2) {
       for (var prop in obj2) {
         if (!(prop in obj)) {
-          obj[prop] = obj2[prop];
+          obj[prop] = obj2[prop]
         }
       }
     })
+    return obj;
   };
 
 
@@ -258,12 +257,14 @@ var _ = { };
   // Return a function that can be called at most one time. Subsequent calls
   // should return the previously returned value.
   _.once = function(func) {
-    if (this.invoked) {
-      return this.value
-    } else {
-      this.invoked = true;
-      this.value = func();
-      return func();
+    _.once.invoked = false;
+    return function() {
+      if (_.once.invoked) {
+        return _.once.value
+      } else {
+        _.once.invoked = true;
+        return _.once.value = func();
+      }
     }
   };
 
@@ -274,16 +275,13 @@ var _ = { };
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
-    if (!this.invoked) {
-      this.invoked = true;
-      this.results = {};
-    }
-    var o = this.results;
-    if (func in o) {
-      return o[func];
-    } else {
-      o[func] = func();
-      return func();
+    var results = {};
+    return function(arg) {
+      if (results[arg]) {
+        return results[arg];
+      } else {
+        return results[arg] = func(arg);
+      }
     }
   };
 
@@ -294,12 +292,23 @@ var _ = { };
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var argsList = Array.apply(null, arguments);
+    return setTimeout(function() {
+      return func(argsList[2], argsList[3])
+    }, wait);
   };
 
 
 
   // Shuffle an array.
   _.shuffle = function(array) {
+    var ans = [], l = array.length;
+
+    for (var i = 0; i < l; i++) {
+      var newIndex = Math.random() * l;
+      ans.splice(newIndex, 0, array[i]);
+    }
+    return ans;
   };
 
   // Sort the object's values by a criterion produced by an iterator.
@@ -307,6 +316,43 @@ var _ = { };
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+    if (typeof(iterator) === 'string') {
+
+      var arg = iterator;
+      iterator = function(obj) {
+        return obj[arg];
+      }
+    }
+
+    var nullValues = [];
+
+    function sorter() {
+      var swap = false
+
+      for (var i = 0; i < collection.length-1; i++) {
+
+        if (iterator(collection[i]) === undefined) {
+          nullValues.push(collection[i]);
+          collection.splice(i, 1)
+        }
+        else if ((iterator(collection[i])) <= iterator(collection[i+1])) {
+          continue;
+        }
+        else {
+          swap = true;
+          var store = collection[i+1];
+          collection[i+1] = collection[i];
+          collection[i] = store;
+        }
+      }
+      if(swap) { return sorter() }
+    }
+
+    sorter();
+    nullValues.forEach(function(x) {
+      collection.push(x);
+    })
+    return collection;
   };
 
   // Zip together two or more arrays with elements of the same index
@@ -315,30 +361,85 @@ var _ = { };
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+    var argumentsList = (arguments.length === 1 ? [arguments[0]] :
+    Array.apply(null, arguments));
+
+    var longest = [];
+    argumentsList.forEach(function(x){
+      if (x.length > longest.length) {
+        longest = x;
+      }
+    })
+
+    var ans = [], l = longest.length;
+
+    argumentsList.forEach(function(arr) {
+      for (var i = 0; i < l; i++) {
+        ans[i] ? ans[i].push(arr[i]) : ans[i] = [arr[i]];
+      }
+    })
+
+    return ans;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   _.flatten = function(nestedArray, result) {
-    var ans = [], l = nestedArray.length;
-    for (var i = 0; i < l; i++) {
-      if (Array.isArray(nestedArray[i])) {
-         ans.push(_.flatten(nestedArray[i]));
-      } else {
-        ans.push(nestedArray[i]);
+    var ans = [];
+    function flat(array) {
+      for (var i = 0; i < array.length; i++) {
+        if (Array.isArray(array[i])) {
+          flat(array[i])
+        } else {
+          ans.push(array[i]);
+        }
       }
     }
+    flat(nestedArray);
     return ans;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
   _.intersection = function() {
+    var argumentsList = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+
+    var lastArray = argumentsList.splice(0,1);
+    var matches = [];
+
+    argumentsList.forEach(function(arr) {
+      for (var i = 0; i < arr.length; i++) {
+        if (lastArray[0].indexOf(arr[i]) > -1 ) {
+          matches.push(arr[i]);
+        }
+      }
+      for (var i = 0; i < matches.length; i++) {
+        if (arr.indexOf(matches[i]) === -1 ) {
+          matches.splice(arr.indexOf(matches[i], 1));
+        }
+      }
+      lastArray[0] = arr;
+    })
+    return matches;
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
   _.difference = function(array) {
+    var argumentsList = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+    var firstArr = argumentsList.splice(0,1)
+    argumentsList.forEach(function(arr) {
+      for (var i = 0; i < arr.length; i++) {
+        if (firstArr[0].indexOf(arr[i]) > -1 ) {
+          firstArr[0].splice(firstArr[0].indexOf(arr[i]), 1)
+        }
+      }
+    })
+    var ans = firstArr[0].map(function(i) {
+      return i;
+    })
+    return ans;
+
   };
 
 }).call(this);
